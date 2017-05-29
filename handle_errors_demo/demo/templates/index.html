@@ -7,3 +7,8 @@ Last AsyncActionReport:
 {% else %}
   Refresh until this message disapears!
 {% endif %}
+
+<form method="POST" action="{% url 'demo:index' %}">
+  {% csrf_token %}
+  <input type="submit" value="Call third-party">
+</form>
