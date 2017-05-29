@@ -6,7 +6,12 @@ Last AsyncActionReport:
   error_message: {{ error_message }}
 {% else %}
   Refresh until this message disapears!
+  <form method="GET" action="{% url 'demo:index' %}">
+  {% csrf_token %}
+  <input type="submit" value="Refresh">
+  </form>
 {% endif %}
+
 
 <form method="POST" action="{% url 'demo:index' %}">
   {% csrf_token %}
