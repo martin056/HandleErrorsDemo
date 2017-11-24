@@ -12,9 +12,9 @@ from exceptions import (
 
 
 CUSTOMERS = [
-    {'id': 1, 'name': 'Martin', 'email': 'martin@demo.com'},
-    {'id': 2, 'name': 'Rado', 'email': 'rado@demo.com'},
-    {'id': 3, 'name': 'Pesho', 'email': 'pesho@demo.com'}
+    {'customer_id': 1, 'name': 'Martin', 'email': 'martin@demo.com'},
+    {'customer_id': 2, 'name': 'Rado', 'email': 'rado@demo.com'},
+    {'customer_id': 3, 'name': 'Pesho', 'email': 'pesho@demo.com'}
 ]
 
 
@@ -63,7 +63,7 @@ class InvoicesPlusClient:
     def __validate_customer(self, *, customer_id: int) -> None:
         customer = None
         for customer_ in CUSTOMERS:
-            if customer_['id'] == customer_id:
+            if customer_['customer_id'] == customer_id:
                 customer_ = customer
 
         if customer is None:
@@ -91,9 +91,9 @@ class InvoicesPlusClient:
             if customer['email'] == email:
                 raise CustomerAlreadyExists(f'Customer `{email}` already exists.')
 
-        customer_id = CUSTOMERS[-1]['id'] + 1
+        customer_id = CUSTOMERS[-1]['customer_id'] + 1
 
-        customer = {'id': customer_id, 'name': name, 'email': email}
+        customer = {'customer_id': customer_id, 'name': name, 'email': email}
 
         CUSTOMERS.append(customer)
         CUSTOMERS_INVOICES[customer_id] = []
@@ -105,7 +105,7 @@ class InvoicesPlusClient:
 
         customer = self.__get_customer(customer_id=customer_id)
 
-        return CUSTOMERS_INVOICES[customer['id']]
+        return CUSTOMERS_INVOICES[customer['customer_id']]
 
     def add_invoice(self, *, customer_id: int, amount: float) -> dict:
         time.sleep(3)

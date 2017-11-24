@@ -1,6 +1,6 @@
 from django.db import models
 
-
+# Base example models
 class AsyncActionReport(models.Model):
     PENDING = 'pending'
     OK = 'ok'
@@ -22,3 +22,16 @@ class AsyncActionReport(models.Model):
 
 class ThirdPartyDataStorage(models.Model):
     data = models.CharField(max_length=255, null=True, blank=True)
+
+
+# Extended example models
+class User(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.CharField(max_length=255, unique=True)
+
+
+class InvoicesPlusCustomer(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.CharField(max_length=255, unique=True)
+    customer_id = models.CharField(max_length=255, unique=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
