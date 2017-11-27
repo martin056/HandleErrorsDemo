@@ -1,10 +1,11 @@
-from third_party import InvoicesPlusClient
 from celery import shared_task, chain
+
+from third_party import InvoicesPlusClient
 
 from django.db import transaction
 from django.conf import settings
 
-from handle_errors_demo.demo.models import ThirdPartyDataStorage, AsyncActionReport
+from demo.models import ThirdPartyDataStorage, AsyncActionReport
 
 from .base import InvoicesPlusBaseTask
 

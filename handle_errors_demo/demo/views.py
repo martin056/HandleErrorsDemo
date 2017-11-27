@@ -1,8 +1,8 @@
 from django.shortcuts import render, reverse
 from django.http import HttpResponseNotAllowed, HttpResponseRedirect
 
-from handle_errors_demo.demo.tasks import fetch_data_and_store_it
-from handle_errors_demo.demo.models import AsyncActionReport
+from demo.tasks import fetch_data_and_store_it
+from demo.models import AsyncActionReport
 
 
 def index(request):

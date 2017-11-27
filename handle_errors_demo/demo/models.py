@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Base example models
 class AsyncActionReport(models.Model):
     PENDING = 'pending'
@@ -25,13 +26,35 @@ class ThirdPartyDataStorage(models.Model):
 
 
 # Extended example models
+class Organisation(models.Model):
+    name = models.CharField(max_length=255)
+
+
 class User(models.Model):
     name = models.CharField(max_length=255)
     email = models.CharField(max_length=255, unique=True)
 
 
 class InvoicesPlusCustomer(models.Model):
-    name = models.CharField(max_length=255)
-    email = models.CharField(max_length=255, unique=True)
-    customer_id = models.CharField(max_length=255, unique=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    member_id = models.CharField(max_length=255, unique=True)
+
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='invoices_plus_customers')
+    organisation = models.ForeignKey(Organisation,
+                                     on_delete=models.CASCADE,
+                                     related_name='invoices_plus_customers')
+
+    class Meta:
+        unique_together = (('organisation', 'member_id'), )
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def name(self):
+        return self.user.name
+
+    @property
+    def email(self):
+        return self.user.email

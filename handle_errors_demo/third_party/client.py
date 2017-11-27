@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from django.core.exceptions import PermissionDenied
 
-from exceptions import (
+from .exceptions import (
     CustomerDoesntExist,
     CustomerAlreadyExists,
     NegativeAmount,
@@ -12,9 +12,15 @@ from exceptions import (
 
 
 CUSTOMERS = [
-    {'customer_id': 1, 'name': 'Martin', 'email': 'martin@demo.com'},
-    {'customer_id': 2, 'name': 'Rado', 'email': 'rado@demo.com'},
-    {'customer_id': 3, 'name': 'Pesho', 'email': 'pesho@demo.com'}
+    {'member_id': '946ef82f-0ecb-4bad-9751-83d38d24e485',
+     'name': 'Martin',
+     'email': 'martin@demo.com'},
+    {'member_id': 'e1fe17c9-bc41-4754-904b-220c798b3fc6',
+     'name': 'Rado',
+     'email': 'rado@demo.com'},
+    {'member_id': '20334e60-e9a0-4d73-b7f0-60659f328cef',
+     'name': 'Pesho',
+     'email': 'pesho@demo.com'}
 ]
 
 
@@ -33,17 +39,17 @@ INVOICES = [
 
 
 CUSTOMERS_INVOICES = {
-    1: [
+    '946ef82f-0ecb-4bad-9751-83d38d24e485': [
         '19df4745-7c49-48a9-8caa-3cb0a7e3fed7',
         'd968422d-543e-4b9d-968b-97f68dc4d6bb',
         'b1d1f336-b2dd-40c6-a16f-f02b4119f41e',
     ],
-    2: [
+    'e1fe17c9-bc41-4754-904b-220c798b3fc6': [
         'e433c07f-b596-47d4-867e-3ca99d52b0dc',
         'dd5e113d-6aaf-4f8e-8b78-88408a2416b5',
         'b8fcb080-eade-49e5-8f03-a0e40e5ab42c',
     ],
-    3: [
+    '20334e60-e9a0-4d73-b7f0-60659f328cef': [
         '095e5068-c31a-4c19-bd08-94b7890a9424',
         '9895249d-a683-4959-9e2e-3fb57722558d',
         '081f361b-f726-48d4-9f6e-ff323ab206ee',
@@ -60,14 +66,14 @@ class InvoicesPlusClient:
         else:
             raise PermissionDenied('Wrong API key!')
 
-    def __validate_customer(self, *, customer_id: int) -> None:
+    def __validate_customer(self, *, member_id: int) -> None:
         customer = None
         for customer_ in CUSTOMERS:
-            if customer_['customer_id'] == customer_id:
+            if customer_['member_id'] == member_id:
                 customer_ = customer
 
         if customer is None:
-            raise CustomerDoesntExist(f'Customer with id: {customer_id} doesn\'t exist.')
+            raise CustomerDoesntExist(f'Customer with id: {member_id} doesn\'t exist.')
 
     def fetch_data_method(self):
         time.sleep(3)
@@ -84,6 +90,15 @@ class InvoicesPlusClient:
 
         return customers
 
+    def get_customer(self, *, email: str) -> dict:
+        time.sleep(3)
+
+        for customer in CUSTOMERS:
+            if customer['email'] == email:
+                return customer
+
+        raise CustomerDoesntExist(f'Customer with email: {email} doesn\'t exist.')
+
     def add_customer(self, *, name: str, email: str) -> dict:
         time.sleep(3)
 
@@ -91,26 +106,26 @@ class InvoicesPlusClient:
             if customer['email'] == email:
                 raise CustomerAlreadyExists(f'Customer `{email}` already exists.')
 
-        customer_id = CUSTOMERS[-1]['customer_id'] + 1
+        member_id = uuid.uuid4()
 
-        customer = {'customer_id': customer_id, 'name': name, 'email': email}
+        customer = {'member_id': member_id, 'name': name, 'email': email}
 
         CUSTOMERS.append(customer)
-        CUSTOMERS_INVOICES[customer_id] = []
+        CUSTOMERS_INVOICES[member_id] = []
 
         return customer
 
-    def get_invoices(self, *, customer_id: int) -> list:
+    def get_invoices(self, *, member_id: int) -> list:
         time.sleep(3)
 
-        customer = self.__get_customer(customer_id=customer_id)
+        customer = self.__get_customer(member_id=member_id)
 
-        return CUSTOMERS_INVOICES[customer['customer_id']]
+        return CUSTOMERS_INVOICES[customer['member_id']]
 
-    def add_invoice(self, *, customer_id: int, amount: float) -> dict:
+    def add_invoice(self, *, member_id: int, amount: float) -> dict:
         time.sleep(3)
 
-        self.__validate_customer(customer_id=customer_id)
+        self.__validate_customer(member_id=member_id)
 
         if amount < 0:
             raise NegativeAmount(f'Can\'t create invoice with negative amount: {amount}')
@@ -118,9 +133,9 @@ class InvoicesPlusClient:
         invoice_id = uuid.uuid4()
         invoice = {'id': invoice_id, amount: round(amount, 2)}
 
-        if len(CUSTOMERS_INVOICES[customer_id]) == 0:
-            CUSTOMERS_INVOICES[customer_id] = [invoice]
+        if len(CUSTOMERS_INVOICES[member_id]) == 0:
+            CUSTOMERS_INVOICES[member_id] = [invoice]
         else:
-            CUSTOMERS_INVOICES[customer_id].append(invoice)
+            CUSTOMERS_INVOICES[member_id].append(invoice)
 
         return invoice
