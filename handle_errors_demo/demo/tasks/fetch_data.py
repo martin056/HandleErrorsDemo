@@ -36,7 +36,8 @@ def __store_data(fetched_data):
 
 @shared_task
 def fetch_data_and_store_it():
-    async_action_report = AsyncActionReport.objects.create()
+    async_action_report = AsyncActionReport.objects.create(action='Fetching data.')
+
     t1 = __fetch_data.s(async_action_report_id=async_action_report.id)
     t2 = __store_data.s()
 
