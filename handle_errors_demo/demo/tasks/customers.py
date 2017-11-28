@@ -1,6 +1,6 @@
 from celery import shared_task, chain
 
-from third_party import InvoicesPlusClient
+from third_party.client import InvoicesPlusClient
 
 from django.conf import settings
 
@@ -16,6 +16,7 @@ from .base import InvoicesPlusBaseTask
 
 @shared_task(task=InvoicesPlusBaseTask)
 def __get_invoices_plus_customer_from_db(organisation_id, user_id, **kwargs):
+    print('Entering t1: ', __get_invoices_plus_customer_from_db.__name__)
     result = {
         'ip_customer_id': None,
         'ip_member_id': None
@@ -32,15 +33,19 @@ def __get_invoices_plus_customer_from_db(organisation_id, user_id, **kwargs):
         result['ip_customer_id'] = ip_customer.id
         result['ip_member_id'] = ip_customer.member_id
 
+    print('Exiting t1: ', __get_invoices_plus_customer_from_db.__name__)
     return result
 
 
 @shared_task(task=InvoicesPlusBaseTask)
-def __get_customer_from_invoices_plus(result, user_id, **kwargs):
+def __get_customer_from_invoices_plus(result, organisation_id, user_id, **kwargs):
+    print('Entering t2: ', __get_customer_from_invoices_plus.__name__)
     if result['ip_customer_id'] is not None:
         return result
 
-    client = InvoicesPlusClient(api_key=settings.THIRD_PARTY_API_KEY)
+    organisation = Organisation.objects.get(id=organisation_id)
+
+    client = InvoicesPlusClient(group_name=organisation.name)
 
     user = User.objects.get(id=user_id)
 
@@ -49,15 +54,19 @@ def __get_customer_from_invoices_plus(result, user_id, **kwargs):
     if payload:
         result['ip_member_id'] = payload['member_id']
 
+    print('Exiting t2: ', __get_customer_from_invoices_plus.__name__)
     return result
 
 
 @shared_task(task=InvoicesPlusBaseTask)
-def __create_customer_in_invoices_plus(result, user_id, **kwargs):
+def __create_customer_in_invoices_plus(result, organisation_id, user_id, **kwargs):
+    print('Entering t3: ', __create_customer_in_invoices_plus.__name__)
     if result['ip_customer_id'] is not None or result['ip_member_id'] is not None:
         return result
 
-    client = InvoicesPlusClient(api_key=settings.THIRD_PARTY_API_KEY)
+    organisation = Organisation.objects.get(id=organisation_id)
+
+    client = InvoicesPlusClient(group_name=organisation.name)
 
     user = User.objects.get(id=user_id)
 
@@ -66,11 +75,13 @@ def __create_customer_in_invoices_plus(result, user_id, **kwargs):
     if payload:
         result['ip_member_id'] = payload['member_id']
 
+    print('Exiting t3: ', __create_customer_in_invoices_plus.__name__)
     return result
 
 
 @shared_task(task=InvoicesPlusBaseTask)
 def __create_invoices_plus_customer_in_db(result, organisation_id, user_id, **kwargs):
+    print('Entering t4: ', __create_invoices_plus_customer_in_db.__name__)
     if result['ip_customer_id'] is not None:
         return result
 
@@ -85,6 +96,7 @@ def __create_invoices_plus_customer_in_db(result, organisation_id, user_id, **kw
 
     result['ip_customer_id'] = ip_customer.id
 
+    print('Exiting t4: ', __create_invoices_plus_customer_in_db.__name__)
     return result
 
 
@@ -92,8 +104,8 @@ def __create_invoices_plus_customer_in_db(result, organisation_id, user_id, **kw
 @chainable
 def ensure_customer(organisation_id, user_id, **kwargs):
     t1 = __get_invoices_plus_customer_from_db.s(organisation_id, user_id, **kwargs)
-    t2 = __get_customer_from_invoices_plus.s(user_id, **kwargs)
-    t3 = __create_customer_in_invoices_plus.s(user_id, **kwargs)
+    t2 = __get_customer_from_invoices_plus.s(organisation_id, user_id, **kwargs)
+    t3 = __create_customer_in_invoices_plus.s(organisation_id, user_id, **kwargs)
     t4 = __create_invoices_plus_customer_in_db.s(organisation_id, user_id, **kwargs)
 
     # return chain(t1, t2, t3, t4).delay()

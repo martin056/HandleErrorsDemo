@@ -1,6 +1,6 @@
 from celery import shared_task, chain
 
-from third_party import InvoicesPlusClient
+from third_party.client import InvoicesPlusClient
 
 from django.db import transaction
 from django.conf import settings

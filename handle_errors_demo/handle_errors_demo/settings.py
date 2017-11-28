@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_celery_results',
 
     'demo.apps.DemoConfig',
+    'third_party.apps.ThirdPartyConfig',
 ]
 
 MIDDLEWARE = [
