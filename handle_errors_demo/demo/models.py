@@ -15,6 +15,7 @@ class AsyncActionReport(models.Model):
 
     status = models.CharField(max_length=7, choices=STATUS_CHOICES, default=PENDING)
     action = models.CharField(max_length=255)
+    system_call = models.BooleanField(default=False)
     error_message = models.TextField(null=True, blank=True)
     error_traceback = models.TextField(null=True, blank=True)
 

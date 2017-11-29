@@ -8,6 +8,7 @@ from demo.models import (
     InvoicesPlusCustomer,
 )
 from demo.decorators import chainable
+from demo.services import get_signature_and_make_system_call
 
 from .base import InvoicesPlusBaseTask
 
@@ -100,9 +101,33 @@ def __create_invoices_plus_customer_in_db(result, organisation_id, user_id, **kw
 
 @chainable
 def ensure_customer(organisation_id, user_id, **kwargs):
-    t1 = __get_invoices_plus_customer_from_db.s(organisation_id, user_id, **kwargs)
-    t2 = __get_customer_from_invoices_plus.s(organisation_id, user_id, **kwargs)
-    t3 = __create_customer_in_invoices_plus.s(organisation_id, user_id, **kwargs)
-    t4 = __create_invoices_plus_customer_in_db.s(organisation_id, user_id, **kwargs)
+    task_kwargs = {
+        'organisation_id': organisation_id,
+        'user_id': user_id
+    }
+
+    t1 = get_signature_and_make_system_call(
+        action='Getting InvoicesPlusCustomer from DB.',
+        task=__get_invoices_plus_customer_from_db,
+        task_kwargs=task_kwargs
+    )
+
+    t2 = get_signature_and_make_system_call(
+        action='Getting Customer from InvoicesPlus.',
+        task=__get_customer_from_invoices_plus,
+        task_kwargs=task_kwargs
+    )
+
+    t3 = get_signature_and_make_system_call(
+        action='Creating customer in InvoicesPlus.',
+        task=__create_customer_in_invoices_plus,
+        task_kwargs=task_kwargs
+    )
+
+    t4 = get_signature_and_make_system_call(
+        action='Creating InvoicesPlusCustomer in DB.',
+        task=__create_invoices_plus_customer_in_db,
+        task_kwargs=task_kwargs
+    )
 
     return t1, t2, t3, t4
