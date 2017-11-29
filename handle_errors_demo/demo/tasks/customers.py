@@ -1,8 +1,6 @@
-from celery import shared_task, chain
+from celery import shared_task
 
 from third_party.client import InvoicesPlusClient
-
-from django.conf import settings
 
 from demo.models import (
     User,
@@ -100,7 +98,6 @@ def __create_invoices_plus_customer_in_db(result, organisation_id, user_id, **kw
     return result
 
 
-# @shared_task(task=InvoicesPlusBaseTask)
 @chainable
 def ensure_customer(organisation_id, user_id, **kwargs):
     t1 = __get_invoices_plus_customer_from_db.s(organisation_id, user_id, **kwargs)
@@ -108,5 +105,4 @@ def ensure_customer(organisation_id, user_id, **kwargs):
     t3 = __create_customer_in_invoices_plus.s(organisation_id, user_id, **kwargs)
     t4 = __create_invoices_plus_customer_in_db.s(organisation_id, user_id, **kwargs)
 
-    # return chain(t1, t2, t3, t4).delay()
     return t1, t2, t3, t4
