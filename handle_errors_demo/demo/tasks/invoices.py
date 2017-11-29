@@ -2,8 +2,6 @@ from celery import shared_task, chain
 
 from third_party.client import InvoicesPlusClient
 
-from django.conf import settings
-
 from demo.models import (
     Organisation,
     InvoicesPlusCustomer,
@@ -39,11 +37,6 @@ def create_invoice_for_non_existing_customer(organisation_id, user_id, amount, *
         user_id=user_id
     )
 
-    # create_invoice_signature = create_invoice_in_invoices_plus.s(
-    #     user_id=user_id,
-    #     amount=amount,
-    #     async_action_report_id=async_action_report.id
-    # )
     create_invoice_signature = create_invoice_in_invoices_plus.si(
         organisation_id=organisation_id,
         user_id=user_id,

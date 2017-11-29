@@ -1,8 +1,5 @@
 import time
-import uuid
 import random
-from copy import deepcopy
-from typing import Union
 
 from django.core.exceptions import PermissionDenied
 
@@ -14,6 +11,7 @@ from .models import (
 )
 
 from .exceptions import (
+    InvoicesPlusClientException,
     CustomerDoesntExist,
     NegativeAmount,
 )
@@ -58,15 +56,17 @@ class InvoicesPlusClient:
 
             return self.__customer_to_dict(customer=customer)
 
-        raise CustomerDoesntExist(f'Customer with email: {email} doesn\'t exist.')
+        return {}
 
     def add_customer(self, *, name: str, email: str) -> dict:
         time.sleep(random.randint(0, 3))
 
         customer = Customer.objects.create(name=name, email=email)
 
+        group = Group.objects.get(name=self.group_name)
+
         CustomerFromGroup.objects.create(
-            group__name=self.group_name,
+            group=group,
             customer=customer
         )
 
